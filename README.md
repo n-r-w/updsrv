@@ -9,7 +9,7 @@
     --header 'X-Authorization: dbda0fba4da680c615340d6faa2868eb5413c3b837640078b87149872257f842' \
     --form 'update=@"/home/we/product21.zip"' \
     --form 'buildTime="2022-06-17T07:30"' \
-    --form 'channel="HRFILE_PROD1"' \
+    --form 'channel="HRFILE_PROD"' \
     --form 'version="4.1.2.9"' \
     --form 'info="информация"' \
     --form 'enabled="true"'
