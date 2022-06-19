@@ -4,10 +4,10 @@ services:
   db:
     image: postgres:14.3
     volumes:
-      - ./pg_log_data:/var/lib/postgresql/data
+      - ./pg_updsrv_data:/var/lib/postgresql/data
       - ./migration/up:/docker-entrypoint-initdb.d
     environment:      
-      POSTGRES_DB: kp_logs
+      POSTGRES_DB: kp_updates
       POSTGRES_HOST_AUTH_METHOD: md5
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1      
@@ -17,17 +17,15 @@ services:
     networks:
       - backend
 
-  logsrv:
+  updsrv:
     build: 
       dockerfile: Dockerfile    
       context: .
     volumes:
-      - .:/logsrv-config
+      - .:/updsrv-config
     ports:
-      - "8080:8080"
-    restart: unless-stopped
-    env_file:
-      - logsrv.env
+      - "8081:8081"
+    restart: unless-stopped    
     depends_on:
       - db
     networks:

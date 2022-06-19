@@ -1,8 +1,8 @@
 FROM golang:1.18.3
 
-RUN mkdir /logsrv-config
+RUN mkdir /updsrv-config
 
-WORKDIR /logsrv
+WORKDIR /updsrv
 
 RUN apt-get update
 RUN apt-get install -y htop mc tilde nano
@@ -13,4 +13,4 @@ RUN make rebuild
 
 EXPOSE 8080
 
-ENTRYPOINT ["./logsrv", "-config-path", "/logsrv-config/config.toml"] 
+ENTRYPOINT ["./updsrv", "-config-path", "/updsrv-config/config.toml"] 
