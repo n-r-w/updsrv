@@ -1,0 +1,31 @@
+# адрес запуска сервера
+HOST = "0.0.0.0"
+# порт запуска сервера
+PORT = "8081"
+# строка подключения к БД
+DATABASE_URL = "host=192.168.1.72 user=postgres password=1 port=5432 dbname=kp_updates sslmode=disable connect_timeout=15000"
+# Максимальное количество сессий БД
+MAX_DB_SESSIONS = 80
+# Время жизни незадействованного соединения к БД
+MAX_DB_SESSION_IDLE_TIME_SEC = 10
+# Таймаут на чтение для HTTP сервера в секундах
+HTTP_READ_TIMEOUT = 60
+# Таймаут на запись для HTTP сервера в секундах
+HTTP_WRITE_TIMEOUT = 60
+# Таймаут на чтение из БД в секундах
+DB_READ_TIMEOUT = 50
+# Таймаут на запись в БД в секундах
+DB_WRITE_TIMEOUT = 50
+# Таймаут завершения HTTP сервера в секундах
+HTTP_SHUTDOWN_TIMEOUT = 10
+# Максимальное количество запросов в секунду
+RATE_LIMIT = 100
+# Пиковое максимальное количество запросов в секунду
+RATE_LIMIT_BURST = 100
+# Максимально допустимый размер обновления в мегабайтах
+MAX_UPDATE_SIZE = 256
+
+TOKENS = [
+    "dbda0fba4da680c615340d6faa2868eb5413c3b837640078b87149872257f842",
+    "b408b10c9c53830dff0eae8f59b034ef71333d7f43e429f6dba212ff65d7044e"
+]
