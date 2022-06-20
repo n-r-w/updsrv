@@ -1,4 +1,4 @@
-.PHONY: build test run runbuild codegen rebuild tidy race docker-up docker-down docker-attach
+.PHONY: build test run runbuild codegen rebuild tidy race docker-up docker-up_d docker-down docker-attach
 
 build:	
 	go build -v -o . ./cmd/updsrv.go
@@ -24,6 +24,9 @@ tidy:
 	go mod tidy
 
 docker-up:
+	docker-compose up --build
+
+docker-up_d:
 	docker-compose up -d --build
 
 docker-down:

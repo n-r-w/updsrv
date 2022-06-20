@@ -110,6 +110,55 @@ func (p *Repo) Add(ui *entity.UpdateInfo, ctx context.Context) error {
 		return nerr.New(err, tools.SimplifyString(sql))
 	}
 
+	// удаляем старые версии
+	sql, err = sqlb.Bind(
+		`WITH deleted AS (
+		DELETE FROM updates 
+		WHERE channel = :channel AND 
+		id NOT IN 
+		(
+			SELECT id 
+			FROM updates
+			WHERE channel = :channel
+			ORDER BY major DESC, minor DESC, patch DESC, revision DESC
+			LIMIT :max_count
+		)
+		RETURNING *
+		)
+		SELECT major, minor, patch, revision 
+		FROM deleted
+		GROUP BY major, minor, patch, revision`,
+		map[string]interface{}{
+			"channel":   ui.Channel,
+			"max_count": p.config.MaxVersionCount,
+		}, "DeleteOld")
+	if err != nil {
+		return err
+	}
+	if q, err = sqlq.SelectTx(tx, sql); err != nil {
+		return nerr.New(err, tools.SimplifyString(sql))
+	}
+
+	deletedVersions := []entity.Version{}
+	for q.Next() {
+		deletedVersions = append(deletedVersions, entity.Version{
+			Major:    q.Int("major"),
+			Minor:    q.Int("minor"),
+			Patch:    q.Int("patch"),
+			Revision: q.Int("revision"),
+		})
+	}
+	if len(deletedVersions) > 0 {
+		var delInfo string
+		for i, v := range deletedVersions {
+			delInfo += v.String()
+			if i < len(deletedVersions)-1 {
+				delInfo += ", "
+			}
+		}
+		p.logOp(ctx, lg.Info, "%s, old versions deleted: %s", ui.Channel, delInfo)
+	}
+
 	if err = tx.Commit(); err == nil {
 		p.logOp(ctx, lg.Info, "new version added: %s, %s", ui.Channel, ui.Version.String())
 	}
