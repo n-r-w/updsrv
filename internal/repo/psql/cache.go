@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -202,7 +201,7 @@ func (c *Cache) save(updateCache bool, fromI entity.UpdateInfo, toI entity.Updat
 			WHERE id_update_from = :id_update_from AND id_update_to = :id_update_to
 			`,
 			map[string]interface{}{
-				"id_update_from": vNull(fromI.ID),
+				"id_update_from": sqlb.VNull(fromI.ID),
 				"id_update_to":   toI.ID,
 				"diff_oid":       oid,
 				"diff_info":      string(jsinfo),
@@ -214,7 +213,7 @@ func (c *Cache) save(updateCache bool, fromI entity.UpdateInfo, toI entity.Updat
 	} else {
 		sql, err = sqlb.Bind(`INSERT INTO cache(id_update_from, id_update_to, diff_oid, diff_info) VALUES (:id_update_from, :id_update_to, :diff_oid, :diff_info)`,
 			map[string]interface{}{
-				"id_update_from": vNull(fromI.ID),
+				"id_update_from": sqlb.VNull(fromI.ID),
 				"id_update_to":   toI.ID,
 				"diff_oid":       oid,
 				"diff_info":      string(jsinfo),
@@ -407,75 +406,6 @@ func (c *Cache) createZip(fs []entity.FileInfo, ctx context.Context) ([]byte, er
 	}
 
 	return ioutil.ReadFile(file.Name())
-}
-
-// подготовка значения перез записью в БД
-func vNull(v interface{}) interface{} {
-	switch d := v.(type) {
-	case int:
-		if d == 0 {
-			return nil
-		}
-		return d
-	case uint:
-		if d == 0 {
-			return nil
-		}
-		return d
-	case int8:
-		if d == 0 {
-			return nil
-		}
-		return d
-	case int16:
-		if d == 0 {
-			return nil
-		}
-		return d
-	case int32:
-		if d == 0 {
-			return nil
-		}
-		return d
-	case int64:
-		if d == 0 {
-			return nil
-		}
-		return d
-	case uint8:
-		if d == 0 {
-			return nil
-		}
-		return d
-	case uint16:
-		if d == 0 {
-			return nil
-		}
-		return d
-	case uint32:
-		if d == 0 {
-			return nil
-		}
-		return d
-	case uint64:
-		if d == 0 {
-			return nil
-		}
-		return d
-	case string:
-		if len(strings.TrimSpace(d)) == 0 {
-			return nil
-		}
-		return d
-	case []byte:
-		if len(d) == 0 {
-			return nil
-		}
-		return d
-	default:
-		return v
-	}
-
 }
 
 // вычисление разницы между дистрибутивами

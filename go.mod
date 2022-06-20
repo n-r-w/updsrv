@@ -12,7 +12,7 @@ require (
 	github.com/n-r-w/lg v1.0.0
 	github.com/n-r-w/nerr v1.0.0
 	github.com/n-r-w/postgres v1.0.0
-	github.com/n-r-w/sqlb v1.0.0
+	github.com/n-r-w/sqlb v1.0.2
 	github.com/n-r-w/sqlq v1.0.0
 	github.com/n-r-w/tools v1.0.0
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
