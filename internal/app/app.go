@@ -19,7 +19,7 @@ func Start(cfg *config.Config, logger lg.Logger) {
 	con, _, err := di.NewContainer(logger, cfg, postgres.Url(cfg.DatabaseURL),
 		[]postgres.Option{
 			postgres.MaxConns(cfg.MaxDbSessions),
-			postgres.MaxMaxConnIdleTime(time.Duration(cfg.MaxDbSessionIdleTimeSec) * time.Second),
+			postgres.MaxMaxConnIdleTime(time.Duration(cfg.MaxDbSessionIdleTime) * time.Second),
 		},
 	)
 	if err != nil {
