@@ -17,6 +17,12 @@
     Отредактировать config.toml. По описанию параметров все должно быть понятно.
 ### Запуск    
     updsrv -config-path ./config.toml    
+    
+### При модификации кода требуется:
+    Установка Google Wire
+        go install github.com/google/wire/cmd/wire@latest
+    Команда генерации кода DI контейнера 
+        make codegen    
 ## Поддерживает следующие операции
 Добавить обновление
 
