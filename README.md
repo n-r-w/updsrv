@@ -5,11 +5,7 @@
     make docker-up
 ### Удаление окружения в docker
     make docker-down
-### Подготовка к сборке:
-    Установить Golang: 18.3 
-        https://go.dev/doc/install
-    Установить Google Wire: 
-        go install github.com/google/wire/cmd/wire@latest
+### Подготовка к сборке: установить [Golang: 18.3 или старше](https://go.dev/doc/install)
 ### Сборка:
     git clone https://github.com/n-r-w/updsrv.git
     cd ./updsrv
@@ -18,11 +14,10 @@
     Установить Postgresql 14.3
     Создать БД
     Применить к ней скрипт migration\up\20220616_init_up.sql
-    Отредактировать config.toml
+    Отредактировать config.toml. По описанию параметров все должно быть понятно.
 ### Запуск    
     updsrv -config-path ./config.toml    
 ## Поддерживает следующие операции
-
 Добавить обновление
 
     curl --location --request POST 'http://localhost:8081/api/add' \
