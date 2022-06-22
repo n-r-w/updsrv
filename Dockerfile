@@ -4,12 +4,11 @@ RUN mkdir /updsrv-config
 
 WORKDIR /updsrv
 
-RUN apt-get update
-RUN apt-get install -y htop mc tilde nano
+# RUN apt-get update
+# RUN apt-get install -y htop mc tilde nano
 
 COPY ./ .
-RUN go install github.com/google/wire/cmd/wire@latest
-RUN make rebuild
+RUN make build
 
 EXPOSE 8080
 
