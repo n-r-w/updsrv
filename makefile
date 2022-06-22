@@ -24,10 +24,10 @@ tidy:
 	go mod tidy
 
 docker-up:
-	docker-compose up --build
+	docker-compose up 
 
-docker-up_d:
-	docker-compose up -d --build
+docker-up-d:
+	docker-compose up -d 
 
 docker-down:
 	docker-compose down
