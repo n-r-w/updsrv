@@ -15,24 +15,36 @@ type Presenter struct {
 	repo       UpdateInterface
 	config     *config.Config
 
-	tokens map[string]bool // список токенов доступа
+	tokens      map[string]bool // список всех токенов
+	tokensRead  map[string]bool // список токенов доступа на чтение
+	tokensWrite map[string]bool // список токенов доступа на запись
 }
 
 // New Инициализация маршрутов
 func New(router httprouter.Router, repo UpdateInterface, config *config.Config) (*Presenter, error) {
 	p := &Presenter{
-		controller: router,
-		repo:       repo,
-		config:     config,
-		tokens:     map[string]bool{},
+		controller:  router,
+		repo:        repo,
+		config:      config,
+		tokens:      map[string]bool{},
+		tokensRead:  map[string]bool{},
+		tokensWrite: map[string]bool{},
 	}
 
-	if len(config.Tokens) == 0 {
-		return nil, nerr.New("no access tokens")
+	if len(config.TokensRead) == 0 {
+		return nil, nerr.New("no access read tokens")
+	}
+	if len(config.TokensWrite) == 0 {
+		return nil, nerr.New("no access write tokens")
 	}
 
 	// инициализация хранилища токенов
-	for _, v := range config.Tokens {
+	for _, v := range config.TokensRead {
+		p.tokensRead[v] = true
+		p.tokens[v] = true
+	}
+	for _, v := range config.TokensWrite {
+		p.tokensWrite[v] = true
 		p.tokens[v] = true
 	}
 
@@ -66,4 +78,19 @@ func (p *Presenter) authenticateUser(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+// Проверка прав
+func (p *Presenter) checkRights(r *http.Request, writeAccess bool) error {
+	token := r.Header.Get("X-Authorization")
+	if writeAccess {
+		if _, ok := p.tokensWrite[token]; !ok {
+			return nerr.New(eno.ErrNoAccess, "no write access")
+		}
+	} else {
+		if _, ok := p.tokensRead[token]; !ok {
+			return nerr.New(eno.ErrNoAccess, "no read access")
+		}
+	}
+	return nil
 }

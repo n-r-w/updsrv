@@ -17,6 +17,11 @@ import (
 // добавить новую версию
 func (p *Presenter) add() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if err := p.checkRights(r, true); err != nil {
+			p.controller.RespondError(w, http.StatusForbidden, err)
+			return
+		}
+
 		if err := r.ParseMultipartForm(int64(p.config.MaxUpdateSize) << 20); err != nil {
 			p.controller.RespondError(w, http.StatusBadRequest, err)
 			return
@@ -129,6 +134,11 @@ func (p *Presenter) add() http.HandlerFunc {
 // проверить наличие новой версии
 func (p *Presenter) check() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if err := p.checkRights(r, false); err != nil {
+			p.controller.RespondError(w, http.StatusForbidden, err)
+			return
+		}
+
 		// парсим входящий json
 		var info entity.UpdateInfo
 		if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
@@ -154,6 +164,11 @@ func (p *Presenter) check() http.HandlerFunc {
 // получить новую версию
 func (p *Presenter) update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if err := p.checkRights(r, false); err != nil {
+			p.controller.RespondError(w, http.StatusForbidden, err)
+			return
+		}
+
 		// парсим входящий json
 		var info entity.UpdateInfo
 		if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
