@@ -14,7 +14,11 @@ import (
 	"github.com/n-r-w/updsrv/internal/di"
 )
 
+const version = "1.0.0"
+
 func Start(cfg *config.Config, logger lg.Logger) {
+	logger.Info("logsrv %s", version)
+
 	// инициализация DI контейнера
 	con, _, err := di.NewContainer(logger, cfg, postgres.Url(cfg.DatabaseURL),
 		[]postgres.Option{
