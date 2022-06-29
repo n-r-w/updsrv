@@ -5,13 +5,13 @@ CREATE EXTENSION IF NOT EXISTS lo;
 CREATE TABLE public.updates 
 (
     id bigserial NOT NULL,
-    record_time timestamp without time zone NOT NULL DEFAULT Now(),
+    record_time timestamp with time zone NOT NULL DEFAULT Now(),
     channel text NOT NULL,    
     major integer NOT NULL,
     minor integer NOT NULL DEFAULT 0,
     patch integer NOT NULL DEFAULT 0,
     revision integer NOT NULL DEFAULT 0,
-    build_time timestamp without time zone NOT NULL DEFAULT Now(),
+    build_time timestamp with time zone NOT NULL DEFAULT Now(),
     info text,
     enabled boolean NOT NULL DEFAULT true,    
 
