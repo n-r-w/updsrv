@@ -5,6 +5,7 @@ import "context"
 // ClientInfo информация о клиенте
 type ClientInfo struct {
 	IP string
+	RealIP string
 }
 
 type clientInfoKeyType string

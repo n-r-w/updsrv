@@ -72,7 +72,11 @@ func (p *Presenter) authenticateUser(next http.Handler) http.Handler {
 
 		// добавляем в контекст инфу о клиенте
 		ci := &entity.ClientInfo{
-			IP: r.RemoteAddr,
+			IP:     r.RemoteAddr,
+			RealIP: r.Header.Get("X-Real-IP"),
+		}
+		if len(ci.RealIP) == 0 {
+			ci.RealIP = ci.IP
 		}
 		ctx := entity.PutClientInfoToContext(ci, r.Context())
 

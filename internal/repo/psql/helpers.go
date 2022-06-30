@@ -121,5 +121,10 @@ func (p *Repo) logOp(ctx context.Context, level lg.Level, format string, args ..
 	}
 
 	msg := fmt.Sprintf(format, args...)
-	p.logger.Level(level, "addr: %s, %s", ci.IP, msg)
+
+	if ci.RealIP == ci.IP {
+		p.logger.Level(level, "addr: %s, %s", ci.IP, msg)
+	} else {
+		p.logger.Level(level, "addr: %s(%s), %s", ci.RealIP, ci.IP, msg)
+	}
 }
