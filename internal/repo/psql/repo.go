@@ -194,6 +194,7 @@ func (p *Repo) Update(сhannel string, version entity.Version, ctx context.Conte
 		return nil, entity.UpdateInfo{}, err
 	}
 	if !ok {
+		p.logOp(ctx, lg.Info, "update not found: %s, %s", сhannel, version.String())
 		return nil, entity.UpdateInfo{}, nil
 	}
 
