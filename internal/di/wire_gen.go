@@ -19,23 +19,23 @@ import (
 
 // NewContainer - создание DI контейнера с помощью google wire
 func NewContainer(logger lg.Logger, config2 *config.Config, dbUrl postgres.Url, dbOptions []postgres.Option) (*Container, func(), error) {
-	postgresPostgres, err := postgres.New(dbUrl, logger, dbOptions...)
+	service, err := postgres.New(dbUrl, logger, dbOptions...)
 	if err != nil {
 		return nil, nil, err
 	}
-	repo := psql.NewRepo(postgresPostgres, config2, logger)
-	routerData := httprouter.New(logger)
-	presenterPresenter, err := presenter.New(routerData, repo, config2)
+	repo := psql.NewRepo(service, config2, logger)
+	httprouterService := httprouter.New(logger)
+	presenterService, err := presenter.New(httprouterService, repo, config2)
 	if err != nil {
 		return nil, nil, err
 	}
 	container := &Container{
 		Logger:    logger,
 		Config:    config2,
-		DB:        postgresPostgres,
+		DB:        service,
 		Repo:      repo,
-		Router:    routerData,
-		Presenter: presenterPresenter,
+		Router:    httprouterService,
+		Presenter: presenterService,
 	}
 	return container, func() {
 	}, nil
@@ -46,8 +46,8 @@ func NewContainer(logger lg.Logger, config2 *config.Config, dbUrl postgres.Url, 
 type Container struct {
 	Logger    lg.Logger
 	Config    *config.Config
-	DB        *postgres.Postgres
+	DB        *postgres.Service
 	Repo      *psql.Repo
-	Router    *httprouter.RouterData
-	Presenter *presenter.Presenter
+	Router    *httprouter.Service
+	Presenter *presenter.Service
 }

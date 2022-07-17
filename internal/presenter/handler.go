@@ -15,29 +15,29 @@ import (
 )
 
 // добавить новую версию
-func (p *Presenter) add() http.HandlerFunc {
+func (p *Service) add() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := p.checkRights(r, true); err != nil {
-			p.controller.RespondError(w, http.StatusForbidden, err)
+			p.controller.RespondError(w, http.StatusForbidden, nerr.New(err))
 			return
 		}
 
 		if err := r.ParseMultipartForm(int64(p.config.MaxUpdateSize) << 20); err != nil {
-			p.controller.RespondError(w, http.StatusBadRequest, err)
+			p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 			return
 		}
 
 		// файл с ПО
 		file, header, err := r.FormFile("update")
 		if err != nil {
-			p.controller.RespondError(w, http.StatusBadRequest, err)
+			p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 			return
 		}
 		defer file.Close()
 
 		zr, err := zip.NewReader(file, header.Size)
 		if err != nil {
-			p.controller.RespondError(w, http.StatusBadRequest, err)
+			p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 			return
 		}
 
@@ -45,7 +45,7 @@ func (p *Presenter) add() http.HandlerFunc {
 		for _, zipFile := range zr.File {
 			f, err := zipFile.Open()
 			if err != nil || len(zipFile.Name) == 0 {
-				p.controller.RespondError(w, http.StatusBadRequest, err)
+				p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 				return
 			}
 
@@ -59,12 +59,12 @@ func (p *Presenter) add() http.HandlerFunc {
 			fi.Data, err = ioutil.ReadAll(f)
 			f.Close()
 			if err != nil {
-				p.controller.RespondError(w, http.StatusBadRequest, err)
+				p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 				return
 			}
 
 			if fi.Checksum, err = tools.Sha256sum(fi.Data); err != nil {
-				p.controller.RespondError(w, http.StatusInternalServerError, err)
+				p.controller.RespondError(w, http.StatusInternalServerError, nerr.New(err))
 				return
 			}
 
@@ -75,38 +75,55 @@ func (p *Presenter) add() http.HandlerFunc {
 		var info entity.UpdateInfo
 		info.Files = files
 
-		info.BuildTime, err = time.Parse("2006-01-02T15:04", r.FormValue("buildTime"))
+		buildTime := r.FormValue("buildTime")
+		if len(buildTime) == 0 {
+			info.BuildTime = time.Now()
+		} else {
+			info.BuildTime, err = time.Parse("2006-01-02T15:04", buildTime)
+		}
 		if err != nil {
-			p.controller.RespondError(w, http.StatusBadRequest, err)
+			p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 			return
 		}
+
 		info.Channel = r.FormValue("channel")
+		if len(info.Channel) == 0 {
+			p.controller.RespondError(w, http.StatusBadRequest, nerr.New("no channel"))
+			return
+		}
+
 		info.Info = r.FormValue("info")
 
-		if v := strings.Split(r.FormValue("version"), "."); len(v) == 0 || len(v) > 4 {
+		version := r.FormValue("version")
+		if len(version) == 0 {
+			p.controller.RespondError(w, http.StatusBadRequest, nerr.New("no version"))
+			return
+		}
+
+		if v := strings.Split(version, "."); len(v) == 0 || len(v) > 4 {
 			p.controller.RespondError(w, http.StatusBadRequest, nerr.NewFmt("invalid version %s", r.FormValue("version")))
 			return
 
 		} else {
 			if info.Version.Major, err = strconv.Atoi(v[0]); err != nil {
-				p.controller.RespondError(w, http.StatusBadRequest, err)
+				p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 				return
 			}
 			if len(v) >= 2 {
 				if info.Version.Minor, err = strconv.Atoi(v[1]); err != nil {
-					p.controller.RespondError(w, http.StatusBadRequest, err)
+					p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 					return
 				}
 			}
 			if len(v) >= 3 {
 				if info.Version.Patch, err = strconv.Atoi(v[2]); err != nil {
-					p.controller.RespondError(w, http.StatusBadRequest, err)
+					p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 					return
 				}
 			}
 			if len(v) >= 4 {
 				if info.Version.Revision, err = strconv.Atoi(v[3]); err != nil {
-					p.controller.RespondError(w, http.StatusBadRequest, err)
+					p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 					return
 				}
 			}
@@ -123,7 +140,7 @@ func (p *Presenter) add() http.HandlerFunc {
 		}
 
 		if err := p.repo.Add(&info, r.Context()); err != nil {
-			p.controller.RespondError(w, http.StatusForbidden, err)
+			p.controller.RespondError(w, http.StatusForbidden, nerr.New(err))
 			return
 		}
 
@@ -132,23 +149,23 @@ func (p *Presenter) add() http.HandlerFunc {
 }
 
 // проверить наличие новой версии
-func (p *Presenter) check() http.HandlerFunc {
+func (p *Service) check() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := p.checkRights(r, false); err != nil {
-			p.controller.RespondError(w, http.StatusForbidden, err)
+			p.controller.RespondError(w, http.StatusForbidden, nerr.New(err))
 			return
 		}
 
 		// парсим входящий json
 		var info entity.UpdateInfo
 		if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
-			p.controller.RespondError(w, http.StatusBadRequest, err)
+			p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 			return
 		}
 
 		found, updateInfo, err := p.repo.Check(info.Channel, info.Version, r.Context())
 		if err != nil {
-			p.controller.RespondError(w, http.StatusInternalServerError, err)
+			p.controller.RespondError(w, http.StatusInternalServerError, nerr.New(err))
 			return
 		}
 
@@ -162,23 +179,23 @@ func (p *Presenter) check() http.HandlerFunc {
 }
 
 // получить новую версию
-func (p *Presenter) update() http.HandlerFunc {
+func (p *Service) update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := p.checkRights(r, false); err != nil {
-			p.controller.RespondError(w, http.StatusForbidden, err)
+			p.controller.RespondError(w, http.StatusForbidden, nerr.New(err))
 			return
 		}
 
 		// парсим входящий json
 		var info entity.UpdateInfo
 		if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
-			p.controller.RespondError(w, http.StatusBadRequest, err)
+			p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 			return
 		}
 
 		data, updateInfo, err := p.repo.Update(info.Channel, info.Version, r.Context())
 		if err != nil {
-			p.controller.RespondError(w, http.StatusInternalServerError, err)
+			p.controller.RespondError(w, http.StatusInternalServerError, nerr.New(err))
 			return
 		}
 

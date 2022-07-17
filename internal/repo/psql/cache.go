@@ -60,7 +60,7 @@ func (c *Cache) Get(v processVersion, ctx context.Context) (*entity.UpdateInfo, 
 
 	// если уже готовится такой диф, то ждем
 	if err := c.waitReady(v, ctx); err != nil {
-		return nil, nil, err
+		return nil, nil, nerr.New(err)
 	}
 
 	// ищем диф в БД, не блокируем других
@@ -68,7 +68,7 @@ func (c *Cache) Get(v processVersion, ctx context.Context) (*entity.UpdateInfo, 
 	// сначала смотрим в кэше прямое обновление
 	res, zipData, updateCache, err := c.askCache(v, ctx, true)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nerr.New(err)
 	}
 	if zipData != nil {
 		c.r.logOp(ctx, lg.Info, "diff from cache: %s, %s => %s", v.fromC, v.fromV.String(), v.toV.String())
@@ -79,7 +79,7 @@ func (c *Cache) Get(v processVersion, ctx context.Context) (*entity.UpdateInfo, 
 		// затем смотрим в кэше полное обновление
 		res, zipData, updateCache, err = c.askCache(v, ctx, false)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nerr.New(err)
 		}
 		if zipData != nil {
 			c.r.logOp(ctx, lg.Info, "full data from cache: %s, %s => %s", v.toC, v.fromV.String(), v.toV.String())
@@ -118,13 +118,13 @@ func (c *Cache) Get(v processVersion, ctx context.Context) (*entity.UpdateInfo, 
 	// информация об версии, с которой обновляем
 	ok, fromI, err := c.r.getUpdateInfo(v.fromC, v.fromV, false, ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nerr.New(err)
 	}
 	if !ok {
 		// версия не найдена, возвращаем полное содержимое последней версии
 		res = &entity.UpdateInfo{}
 		if ok, *res, err = c.r.getUpdateInfo(v.fromC, v.fromV, true, ctx); err != nil {
-			return nil, nil, err
+			return nil, nil, nerr.New(err)
 		}
 		if !ok {
 			return nil, nil, nil
@@ -135,13 +135,13 @@ func (c *Cache) Get(v processVersion, ctx context.Context) (*entity.UpdateInfo, 
 	// информация об версии, на которую обновляем
 	ok, toI, err := c.r.getUpdateInfo(v.toC, v.toV, false, ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nerr.New(err)
 	}
 	if !ok {
 		// версия не найдена, возвращаем полное содержимое последней версии
 		res = &entity.UpdateInfo{}
 		if ok, *res, err = c.r.getUpdateInfo(v.fromC, v.fromV, true, ctx); err != nil {
-			return nil, nil, err
+			return nil, nil, nerr.New(err)
 		}
 		if !ok {
 			return nil, nil, nil
@@ -154,7 +154,7 @@ func (c *Cache) Get(v processVersion, ctx context.Context) (*entity.UpdateInfo, 
 		c.r.logOp(ctx, lg.Warn, "no diff found: %s, %s => %s", v.fromC, v.fromV.String(), v.toV.String())
 		zipData, err = c.createZip(res.Files, ctx)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nerr.New(err)
 		}
 
 	} else {
@@ -166,13 +166,13 @@ func (c *Cache) Get(v processVersion, ctx context.Context) (*entity.UpdateInfo, 
 		// делаем zip
 		zipData, err = c.createZip(res.Files, ctx)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nerr.New(err)
 		}
 	}
 
 	// сохраняем кэш в БД
 	if err = c.save(updateCache, fromI, toI, res, zipData, ctx); err != nil {
-		return nil, nil, err
+		return nil, nil, nerr.New(err)
 	}
 
 	return res, zipData, nil
@@ -186,12 +186,12 @@ func (c *Cache) save(updateCache bool, fromI entity.UpdateInfo, toI entity.Updat
 
 	oid, err := sqlq.SaveLargeObject(tx, 0, zipData)
 	if err != nil {
-		return err
+		return nerr.New(err)
 	}
 
 	jsinfo, err := json.Marshal(*res)
 	if err != nil {
-		return err
+		return nerr.New(err)
 	}
 
 	var sql string
@@ -207,7 +207,7 @@ func (c *Cache) save(updateCache bool, fromI entity.UpdateInfo, toI entity.Updat
 				"diff_info":      string(jsinfo),
 			}, "UpdateCache")
 		if err != nil {
-			return err
+			return nerr.New(err)
 		}
 
 	} else {
@@ -219,17 +219,17 @@ func (c *Cache) save(updateCache bool, fromI entity.UpdateInfo, toI entity.Updat
 				"diff_info":      string(jsinfo),
 			}, "UpdateCache")
 		if err != nil {
-			return err
+			return nerr.New(err)
 		}
 	}
 
-	if err = sqlq.ExecTx(tx, sql); err != nil {
+	if _, err = sqlq.ExecTx(tx, sql); err != nil {
 		// ошибку обновления кэша игнорируем, т.к. могут быть коллизии с другими пользователями и нам это не важно
 		return nil
 	}
 
 	if err = tx.Commit(); err != nil {
-		return err
+		return nerr.New(err)
 	}
 
 	return nil
@@ -328,11 +328,11 @@ func (c *Cache) askCache(v processVersion, ctx context.Context,
 			}, "GetCacheFull")
 	}
 	if err != nil {
-		return nil, nil, false, err
+		return nil, nil, false, nerr.New(err)
 	}
 	q, err := sqlq.SelectRow(c.r.Pool, ctx, sql)
 	if err != nil {
-		return nil, nil, false, err
+		return nil, nil, false, nerr.New(err)
 	}
 
 	if q != nil {
@@ -344,7 +344,7 @@ func (c *Cache) askCache(v processVersion, ctx context.Context,
 			tx.Begin()
 			zipData, err = sqlq.LoadLargeObject(tx, uint32(q.UInt64("diff_oid")))
 			if err != nil {
-				return nil, nil, false, err
+				return nil, nil, false, nerr.New(err)
 			}
 			tx.Rollback()
 
@@ -385,7 +385,7 @@ func (c *Cache) createZip(fs []entity.FileInfo, ctx context.Context) ([]byte, er
 		// грузим содержимое файла
 		data, err := sqlq.LoadLargeObject(tx, fi.DataID)
 		if err != nil {
-			return nil, err
+			return nil, nerr.New(err)
 		}
 
 		if _, err = zipFile.Write(data); err != nil {

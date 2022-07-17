@@ -3,7 +3,7 @@ HOST = "0.0.0.0"
 # порт запуска сервера
 PORT = "8081"
 # строка подключения к БД
-DATABASE_URL = "host=db user=postgres password=1 port=5432 dbname=updates sslmode=disable connect_timeout=15000"
+DATABASE_URL = "host=192.168.1.72 user=postgres password=1 port=5432 dbname=updates sslmode=disable connect_timeout=15000"
 # Максимальное количество сессий БД
 MAX_DB_SESSIONS = 30
 # Время жизни незадействованного соединения к БД в секундах

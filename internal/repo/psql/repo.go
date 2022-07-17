@@ -20,15 +20,15 @@ import (
 )
 
 type Repo struct {
-	*postgres.Postgres
+	*postgres.Service
 	config *config.Config
 	cache  *Cache
 	logger lg.Logger
 }
 
-func NewRepo(pg *postgres.Postgres, config *config.Config, logger lg.Logger) *Repo {
+func NewRepo(pg *postgres.Service, config *config.Config, logger lg.Logger) *Repo {
 	r := &Repo{
-		Postgres: pg,
+		Service: pg,
 		config:   config,
 		logger:   logger,
 	}
@@ -106,7 +106,7 @@ func (p *Repo) Add(ui *entity.UpdateInfo, ctx context.Context) error {
 	}
 
 	sql = fmt.Sprintf(`INSERT INTO public.files(id_update, file_name, checksum, data_oid) VALUES %s`, strings.Join(filesSql, ","))
-	if err := sqlq.ExecTx(tx, sql); err != nil {
+	if _, err := sqlq.ExecTx(tx, sql); err != nil {
 		return nerr.New(err, tools.SimplifyString(sql))
 	}
 

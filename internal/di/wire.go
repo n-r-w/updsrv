@@ -17,10 +17,10 @@ import (
 type Container struct {
 	Logger    lg.Logger
 	Config    *config.Config
-	DB        *postgres.Postgres
+	DB        *postgres.Service
 	Repo      *psql.Repo
-	Router    *httprouter.RouterData
-	Presenter *presenter.Presenter
+	Router    *httprouter.Service
+	Presenter *presenter.Service
 }
 
 // NewContainer - создание DI контейнера с помощью google wire
@@ -31,7 +31,7 @@ func NewContainer(logger lg.Logger, config *config.Config, dbUrl postgres.Url, d
 		wire.Bind(new(presenter.UpdateInterface), new(*psql.Repo)),
 		psql.NewRepo,
 
-		wire.Bind(new(httprouter.Router), new(*httprouter.RouterData)),
+		wire.Bind(new(httprouter.Router), new(*httprouter.Service)),
 		httprouter.New,
 
 		presenter.New,

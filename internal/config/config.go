@@ -8,9 +8,8 @@ import (
 	"github.com/n-r-w/lg"
 )
 
-// Config logserver.toml
+// Config updsrv.toml
 type Config struct {
-	SuperAdminID         int
 	Host                 string   `toml:"HOST"`
 	Port                 string   `toml:"PORT"`
 	DatabaseURL          string   `toml:"DATABASE_URL"`
@@ -30,17 +29,13 @@ type Config struct {
 }
 
 const (
-	superAdminID         = 1
 	maxDbSessions        = 50
 	maxDbSessionIdleTime = 50
-	maxLogRecordsResult  = 100000
-	defaultSessionAge    = 60 * 60 * 24 // 24 часа
 )
 
 // New Инициализация конфига значениями по умолчанию
 func New(configPath string, logger lg.Logger) (*Config, error) {
 	c := &Config{
-		SuperAdminID:         superAdminID,
 		Host:                 "0.0.0.0",
 		Port:                 "8080",
 		DatabaseURL:          "",
@@ -68,12 +63,6 @@ func New(configPath string, logger lg.Logger) (*Config, error) {
 	if c.DatabaseURL == "" {
 		return nil, fmt.Errorf("DATABASE_URL undefined")
 	}
-
-	logger.Info("MAX_DB_SESSIONS: %d", c.MaxDbSessions)
-	logger.Info("MAX_DB_SESSION_IDLE_TIME: %d", c.MaxDbSessionIdleTime)
-	logger.Info("RATE_LIMIT: %d", c.RateLimit)
-	logger.Info("RATE_LIMIT_BURST: %d", c.RateLimitBurst)
-	logger.Info("DATABASE_URL: %s", c.DatabaseURL)
 
 	return c, nil
 }
