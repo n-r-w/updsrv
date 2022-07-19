@@ -4,8 +4,11 @@ import "context"
 
 // ClientInfo информация о клиенте
 type ClientInfo struct {
-	IP string
-	RealIP string
+	IP       string
+	RealIP   string
+	LocalIP  string
+	AppLogin string
+	OsLogin  string
 }
 
 type clientInfoKeyType string

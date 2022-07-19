@@ -45,3 +45,12 @@ type UpdateInfo struct {
 	Enabled    bool       `json:"enabled,omitempty"`
 	Files      []FileInfo `json:"files,omitempty"`
 }
+
+// CheckRequest запрос информации об обновлении
+type CheckRequest struct {
+	Channel  string  `json:"channel,omitempty"`
+	Version  Version `json:"version,omitempty"`
+	LocalIP  string  `json:"localIP,omitempty"`
+	AppLogin string  `json:"appLogin,omitempty"`
+	OsLogin  string  `json:"osLogin,omitempty"`
+}

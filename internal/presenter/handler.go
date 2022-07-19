@@ -157,13 +157,18 @@ func (p *Service) check() http.HandlerFunc {
 		}
 
 		// парсим входящий json
-		var info entity.UpdateInfo
-		if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
+		var checkRequest entity.CheckRequest
+		if err := json.NewDecoder(r.Body).Decode(&checkRequest); err != nil {
 			p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 			return
 		}
 
-		found, updateInfo, err := p.repo.Check(info.Channel, info.Version, r.Context())
+		clientInfo := entity.GetClientInfoFromContext(r.Context())
+		clientInfo.LocalIP = checkRequest.LocalIP
+		clientInfo.AppLogin = checkRequest.AppLogin
+		clientInfo.OsLogin = checkRequest.OsLogin
+
+		found, updateInfo, err := p.repo.Check(checkRequest.Channel, checkRequest.Version, r.Context())
 		if err != nil {
 			p.controller.RespondError(w, http.StatusInternalServerError, nerr.New(err))
 			return
@@ -187,13 +192,18 @@ func (p *Service) update() http.HandlerFunc {
 		}
 
 		// парсим входящий json
-		var info entity.UpdateInfo
-		if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
+		var updateRequest entity.CheckRequest
+		if err := json.NewDecoder(r.Body).Decode(&updateRequest); err != nil {
 			p.controller.RespondError(w, http.StatusBadRequest, nerr.New(err))
 			return
 		}
 
-		data, updateInfo, err := p.repo.Update(info.Channel, info.Version, r.Context())
+		clientInfo := entity.GetClientInfoFromContext(r.Context())
+		clientInfo.LocalIP = updateRequest.LocalIP
+		clientInfo.AppLogin = updateRequest.AppLogin
+		clientInfo.OsLogin = updateRequest.OsLogin
+
+		data, updateInfo, err := p.repo.Update(updateRequest.Channel, updateRequest.Version, r.Context())
 		if err != nil {
 			p.controller.RespondError(w, http.StatusInternalServerError, nerr.New(err))
 			return

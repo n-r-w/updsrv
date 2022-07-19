@@ -4,6 +4,7 @@ package psql
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/n-r-w/lg"
 	"github.com/n-r-w/nerr"
@@ -122,9 +123,26 @@ func (p *Repo) logOp(ctx context.Context, level lg.Level, format string, args ..
 
 	msg := fmt.Sprintf(format, args...)
 
-	if ci.RealIP == ci.IP {
-		p.logger.Level(level, "addr: %s, %s", ci.IP, msg)
-	} else {
-		p.logger.Level(level, "addr: %s(%s), %s", ci.RealIP, ci.IP, msg)
+	var text string
+	var realInfo []string
+
+	if len(ci.IP) > 0 {
+		realInfo = append(realInfo, fmt.Sprintf("ip: %s", ci.IP))
 	}
+	if len(ci.RealIP) > 0 && ci.RealIP != ci.IP {
+		realInfo = append(realInfo, fmt.Sprintf("real ip: %s", ci.RealIP))
+	}
+	if len(ci.LocalIP) > 0 && ci.LocalIP != ci.IP && ci.LocalIP != ci.RealIP {
+		realInfo = append(realInfo, fmt.Sprintf("local ip: %s", ci.LocalIP))
+	}
+	if len(ci.AppLogin) > 0 {
+		realInfo = append(realInfo, fmt.Sprintf("user: %s", ci.AppLogin))
+	}
+	if len(ci.OsLogin) > 0 {
+		realInfo = append(realInfo, fmt.Sprintf("login: %s", ci.OsLogin))
+	}
+
+	text = fmt.Sprintf("%s; %s", strings.Join(realInfo, ", "), msg)
+
+	p.logger.Level(level, text)
 }
