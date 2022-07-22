@@ -24,6 +24,7 @@ type Config struct {
 	RateLimitBurst       int      `toml:"RATE_LIMIT_BURST"`
 	MaxUpdateSize        int      `toml:"MAX_UPDATE_SIZE"`
 	MaxVersionCount      int      `toml:"MAX_VERSION_COUNT"`
+	MinVersionAge        int      `toml:"MIN_VERSION_AGE"`
 	TokensRead           []string `toml:"TOKENS_READ"`
 	TokensWrite          []string `toml:"TOKENS_WRITE"`
 }
@@ -49,7 +50,8 @@ func New(configPath string, logger lg.Logger) (*Config, error) {
 		RateLimit:            10000,
 		RateLimitBurst:       20000,
 		MaxUpdateSize:        200,
-		MaxVersionCount:      100,
+		MaxVersionCount:      30,
+		MinVersionAge:        20,
 		TokensRead:           []string{},
 		TokensWrite:          []string{},
 	}
